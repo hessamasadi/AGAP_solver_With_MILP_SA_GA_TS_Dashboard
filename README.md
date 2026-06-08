@@ -8,7 +8,7 @@ The Airport Gate Assignment Problem (AGAP) consists of assigning arriving and de
 - Each flight occupies exactly one gate (or apron/remote stand)
 - No two overlapping flights can share the same gate
 - Cleaning time between consecutive flights at the same gate
-- Size compatibility: small aircraft cannot use large gates
+- Size compatibility
 
 ## Mathematical Formulation
 
@@ -25,34 +25,21 @@ The Airport Gate Assignment Problem (AGAP) consists of assigning arriving and de
 - $M = 100 \times n$: penalty for apron assignment
 
 **Decision Variables:**
-$$
-x_{f,g} = \begin{cases} 
-1 & \text{if flight } f \text{ assigned to gate } g \\
-0 & \text{otherwise}
-\end{cases}
-$$
+$$x_{f,g} = \begin{cases} 1 & \text{if flight } f \text{ assigned to gate } g \\ 0 & \text{otherwise} \end{cases}$$
 
 **Objective:**
-$$
-\max \sum_{f \in F} \sum_{g \in G, g \neq 0} x_{f,g} - M \sum_{f \in F} x_{f,0}
-$$
+$$max \sum_{f \in F} \sum_{g \in G, g \neq 0} x_{f,g} - M \sum_{f \in F} x_{f,0}$$
 
 **Constraints:**
 
 Each flight to exactly one gate:
-$$
-\sum_{g \in G} x_{f,g} = 1 \quad \forall f \in F
-$$
+$$\sum_{g \in G} x_{f,g} = 1 \quad \forall f \in F$$
 
 No overlapping flights on same gate (with cleaning time):
-$$
-x_{i,g} + x_{j,g} \leq 1 \quad \forall g \in G \setminus \{0\}, \forall i,j: a_i < d_j + t_{\text{clean}} \text{ and } a_j < d_i + t_{\text{clean}}
-$$
+$$x_{i,g} + x_{j,g} \leq 1 \quad \forall g \in G \setminus \{0\}, \forall i,j: a_i < d_j + t_{\text{clean}} \text{ and } a_j < d_i + t_{\text{clean}}$$
 
 Size compatibility:
-$$
-x_{f,g} \leq \text{compat}_{f,g} \quad \text{where } \text{compat}_{f,g} = 1 \text{ if } g=0 \text{ or } s_f \leq c_g
-$$
+$$x_{f,g} \leq \text{compat}_{f,g} \quad \text{where } \text{compat}_{f,g} = 1 \text{ if } g=0 \text{ or } s_f \leq c_g$$
 
 ## Solution Methods
 
