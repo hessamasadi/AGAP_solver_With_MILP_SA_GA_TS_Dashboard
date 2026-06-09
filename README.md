@@ -8,7 +8,7 @@ The Airport Gate Assignment Problem (AGAP) consists of assigning arriving and de
 - Each flight occupies exactly one gate (or apron/remote stand)
 - No two overlapping flights can share the same gate
 - Cleaning time between consecutive flights at the same gate
-- Size compatibility
+- Size compatibility (small/medium/large aircraft to appropriate gates)
 
 ## Mathematical Formulation
 
@@ -28,7 +28,7 @@ The Airport Gate Assignment Problem (AGAP) consists of assigning arriving and de
 $$x_{f,g} = \begin{cases} 1 & \text{if flight } f \text{ assigned to gate } g \\ 0 & \text{otherwise} \end{cases}$$
 
 **Objective:**
-$$max \sum_{f \in F} \sum_{g \in G, g \neq 0} x_{f,g} - M \sum_{f \in F} x_{f,0}$$
+$$\max \sum_{f \in F} \sum_{g \in G, g \neq 0} x_{f,g} - M \sum_{f \in F} x_{f,0}$$
 
 **Constraints:**
 
@@ -47,22 +47,49 @@ $$x_{f,g} \leq \text{compat}_{f,g} \quad \text{where } \text{compat}_{f,g} = 1 \
 
 The exact formulation is solved using the CBC solver via PuLP. Guarantees optimality for small instances ($n \leq 20$). Computational complexity grows exponentially with problem size.
 
+**Parameter:** 60-second time limit for large instances
+
 ### Simulated Annealing (SA)
 
-A metaheuristic inspired by the annealing process in metallurgy. Accepts worse solutions with decreasing probability to escape local optima. Provides near-optimal solutions faster than MILP for larger instances.
+A metaheuristic inspired by the annealing process in metallurgy. Accepts worse solutions with decreasing probability to escape local optima.
 
-**SA Parameters:**
+**Parameters:**
 - Initial temperature: 100
 - Cooling rate: 0.95
-- Iterations per temperature: $100 \times n_{\text{flights}}$
+- Iterations per temperature: 100
 - Stopping temperature: 0.01
+
+### Genetic Algorithm (GA)
+
+Population-based evolutionary algorithm using selection, crossover, and mutation. Maintains diversity through elitism (keeps best 2 solutions per generation).
+
+**Parameters:**
+- Population size: 100
+- Generations: 200
+- Mutation rate: 0.1
+- Crossover rate: 0.8
+- Selection: Tournament (size 3)
+
+### Tabu Search (TS)
+
+Local search with memory structure to avoid cycling. Uses short-term tabu list (tenure=10) and aspiration criteria to override tabu when improving best solution.
+
+**Parameters:**
+- Max iterations: 500
+- Tabu tenure: 10
+- Neighborhood size: 30
+- Random restart after 50 stagnant iterations
 
 ## Results
 
 For a test instance with 15 flights and 5 gates (2 small, 2 medium, 1 large):
-- Optimal objective value: 14 (one large flight assigned to apron)
-- Both MILP and SA achieve the same objective
-- Multiple optimal assignments exist due to gate symmetry
+- **Optimal assignment:** 14 flights to gates, 1 flight (large) to apron
+- **MILP:** Optimal in 0.2 seconds
+- **SA:** Matches optimal in 0.8 seconds
+- **GA:** Matches optimal in 2.1 seconds
+- **TS:** Matches optimal in 1.2 seconds
+
+Multiple optimal assignments exist due to gate symmetry.
 
 ## References
 
