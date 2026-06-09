@@ -9,13 +9,13 @@ import random
 import math
 import copy
 
-# ==================== SCENARIO GENERATOR ====================
+
 def generate_scenario(n_flights=15, n_gates=5, seed=42, t_clean=30):
     """Generate realistic airport scenario"""
     random.seed(seed)
     np.random.seed(seed)
     
-    # Gate configuration with realistic distribution
+    
     if n_gates == 1:
         gate_capacities = [2]
     elif n_gates == 2:
@@ -45,13 +45,13 @@ def generate_scenario(n_flights=15, n_gates=5, seed=42, t_clean=30):
     for g, cap in enumerate(gate_capacities, start=1):
         gates.append({'id': g, 'capacity': cap})
     
-    # Flight generation
+   
     flights = []
     sizes = [1, 2, 3]
     size_weights = [0.4, 0.4, 0.2]
     
-    start_min = 360  # 6:00
-    end_min = 1320   # 22:00
+    start_min = 360 
+    end_min = 1320  
     min_duration = 45
     max_duration = 180
     
@@ -76,7 +76,6 @@ def generate_scenario(n_flights=15, n_gates=5, seed=42, t_clean=30):
     for idx, f in enumerate(flights):
         f['id'] = idx
     
-    # Build conflict matrix
     conflict_matrix = [[0 for _ in range(n_flights)] for _ in range(n_flights)]
     for i in range(n_flights):
         for j in range(i+1, n_flights):
@@ -97,7 +96,6 @@ def generate_scenario(n_flights=15, n_gates=5, seed=42, t_clean=30):
         'n_gates': n_gates
     }
 
-# ==================== LOAD SCENARIO FROM CSV ====================
 def load_scenario_from_csv(data_path):
     flights_df = pd.read_csv(os.path.join(data_path, 'flights_with_times.csv'))
     flights = []
@@ -130,7 +128,6 @@ def load_scenario_from_csv(data_path):
         'n_gates': len(gates)
     }
 
-# ==================== MILP SOLVER ====================
 def solve_agap_milp(scenario):
     n_flights = scenario['n_flights']
     n_gates = scenario['n_gates']
@@ -191,7 +188,6 @@ def solve_agap_milp(scenario):
         'assignment_matrix': assignment_matrix
     }
 
-# ==================== SIMULATED ANNEALING ====================
 class SimulatedAnnealingAGAP:
     def __init__(self, scenario, initial_temp=100, cooling_rate=0.95, iterations_per_temp=100, min_temp=0.01):
         random.seed(42)
@@ -325,13 +321,11 @@ def solve_agap_sa(scenario):
         'assignment_matrix': assignment_matrix
     }
 
-# ==================== STREAMLIT DASHBOARD ====================
 st.set_page_config(page_title="AGAP Dashboard", layout="wide")
 
 st.title("✈️ Airport Gate Assignment Problem")
 st.markdown("MILP vs Simulated Annealing - Generate scenario or load from CSV")
 
-# Sidebar - Source selection
 st.sidebar.header("📂 Data Source")
 
 data_source = st.sidebar.radio(
@@ -351,7 +345,6 @@ if data_source == "Generate New Scenario":
     seed = st.sidebar.number_input("Random Seed", value=42, min_value=1, max_value=999)
     t_clean = st.sidebar.slider("Cleaning Time (minutes)", min_value=15, max_value=60, value=30)
     
-    # Validate ratio
     ratio = n_flights / n_gates
     if ratio < 2:
         st.sidebar.warning(f"⚠️ Low flight/gate ratio ({ratio:.1f}:1). Problem may be too easy. Consider more flights.")
@@ -368,7 +361,7 @@ if data_source == "Generate New Scenario":
             st.success(f"✅ Generated: {n_flights} flights, {n_gates} gates")
             st.rerun()
 
-else:  # Load Existing CSV
+else:  
     st.sidebar.subheader("CSV Files Path")
     data_path = st.sidebar.text_input(
         "Dataset folder path",
@@ -385,7 +378,6 @@ else:  # Load Existing CSV
         except Exception as e:
             st.error(f"Error: {e}")
 
-# Algorithm selection (only show if scenario exists)
 if 'scenario' in st.session_state:
     scenario = st.session_state['scenario']
     
@@ -408,7 +400,6 @@ if 'scenario' in st.session_state:
         
         st.rerun()
     
-    # ==================== DISPLAY ====================
     st.subheader("📊 Scenario Summary")
     
     col1, col2, col3, col4 = st.columns(4)
@@ -421,7 +412,6 @@ if 'scenario' in st.session_state:
     with col4:
         st.metric("Cleaning Time", f"{scenario['t_clean']} min")
     
-    # Gate distribution
     with st.expander("🚪 Gate Configuration"):
         gates_df = pd.DataFrame(scenario['gates'])
         gates_df['capacity_name'] = gates_df['capacity'].map({1:'Small',2:'Medium',3:'Large'})
@@ -434,7 +424,6 @@ if 'scenario' in st.session_state:
             st.metric("Large Gates", sum(1 for g in scenario['gates'] if g['capacity'] == 3))
         st.dataframe(gates_df[['id', 'capacity_name']])
     
-    # Flight schedule
     with st.expander("📋 Flight Schedule"):
         flights_df = pd.DataFrame(scenario['flights'])
         flights_df['arrival_time'] = flights_df['arrival'].apply(lambda x: f"{x//60:02d}:{x%60:02d}")
@@ -450,7 +439,6 @@ if 'scenario' in st.session_state:
             st.metric("Large Flights", sum(1 for f in scenario['flights'] if f['size'] == 3))
         st.dataframe(flights_df[['id', 'size_name', 'arrival_time', 'departure_time', 'duration']])
     
-    # Results
     if 'milp_result' in st.session_state or 'sa_result' in st.session_state:
         st.subheader("📈 Results Comparison")
         
@@ -474,7 +462,6 @@ if 'scenario' in st.session_state:
                 st.metric("Assigned to Apron", len(sa['apron_flights']))
                 st.metric("Status", sa['status'])
         
-        # Gantt chart
         st.subheader("📅 Gate Assignment Gantt Chart")
         
         algo_option = st.radio("Select Algorithm to Visualize", ["MILP", "Simulated Annealing"], horizontal=True)
